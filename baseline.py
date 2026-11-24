@@ -5,6 +5,9 @@ radii = [2, 1, 2]
 
 s = len(sprinklers)
 
+bestCost = float("inf")
+bestMask = None
+
 for mask in range(1 << s):
     active = []
     for i in range(s):
@@ -32,6 +35,24 @@ for mask in range(1 << s):
                     break
             if watered:
                 cost += 1
+
+        if cost < bestCost:
+            bestCost = cost
+            bestMask = mask
+
         print(f"Mask: {mask:0{s}b} → Valid: {valid}, Cost: {cost}")
     else:
         print(f"Mask: {mask:0{s}b} → Valid: {valid}")
+
+if bestMask is None:
+    print("No valid selection found")
+else:
+    selected = []
+    for i in range(s):
+        if (bestMask >> i) & 1:
+            selected.append(sprinklers[i])
+
+    print()
+    print(f"Best Mask: {bestMask:0{s}b}")
+    print(f"Selected Sprinklers: {selected}")
+    print(f"Minimum Cacti Watered: {bestCost}")
