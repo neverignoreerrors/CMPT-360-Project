@@ -22,4 +22,16 @@ for mask in range(1 << s):
             valid = False
             break
 
-    print(f"Mask: {mask:0{s}b} → Valid: {valid}")
+    if valid:
+        cost = 0
+        for cactus in cacti:
+            watered = False
+            for i in active:
+                if abs(sprinklers[i] - cactus) <= radii[i]:
+                    watered = True
+                    break
+            if watered:
+                cost += 1
+        print(f"Mask: {mask:0{s}b} → Valid: {valid}, Cost: {cost}")
+    else:
+        print(f"Mask: {mask:0{s}b} → Valid: {valid}")
