@@ -21,8 +21,36 @@ for i in range(s):
             coveredCacti.add(j)
     cactusCoverage.append(coveredCacti)
 
+eliminated = set()
+
+for a in range(s):
+    for b in range(s):
+        if a == b:
+            continue
+
+        # B dominates A: B covers every orange A covers,
+        # and B waters no cactus that A doesn't already water.
+        bDominatesA = (orangeCoverage[a] <= orangeCoverage[b]
+                       and cactusCoverage[b] <= cactusCoverage[a])
+
+        if not bDominatesA:
+            continue
+
+        # Equivalent sprinklers: keep only the smaller index.
+        equivalent = (orangeCoverage[a] == orangeCoverage[b]
+                      and cactusCoverage[a] == cactusCoverage[b])
+
+        if equivalent:
+            if a > b:
+                eliminated.add(a)
+        else:
+            eliminated.add(a)
+
+remainingSprinklers = []
 for i in range(s):
-    print(f"Sprinkler {i}:")
-    print(f"  Orange indices: {orangeCoverage[i]}")
-    print(f"  Cactus indices: {cactusCoverage[i]}")
-    print()
+    if i not in eliminated:
+        remainingSprinklers.append(i)
+
+print(f"Original sprinklers: {list(range(s))}")
+print(f"Remaining sprinklers: {remainingSprinklers}")
+print(f"Eliminated sprinklers: {sorted(eliminated)}")
