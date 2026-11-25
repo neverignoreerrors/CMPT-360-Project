@@ -1,7 +1,7 @@
-oranges = [2, 6]
-cacti = [4, 8]
-sprinklers = [3, 6, 7]
-radii = [2, 1, 2]
+oranges = [2, 10]
+cacti = [4]
+sprinklers = [3]
+radii = [2]
 
 s = len(sprinklers)
 

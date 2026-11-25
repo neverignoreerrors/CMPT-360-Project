@@ -1,7 +1,7 @@
-oranges = [2, 6]
-cacti = [4, 8]
-sprinklers = [3, 6, 7]
-radii = [2, 1, 2]
+oranges = [2, 10]
+cacti = [4]
+sprinklers = [3]
+radii = [2]
 
 s = len(sprinklers)
 
@@ -28,15 +28,12 @@ for a in range(s):
         if a == b:
             continue
 
-        # B dominates A: B covers every orange A covers,
-        # and B waters no cactus that A doesn't already water.
         bDominatesA = (orangeCoverage[a] <= orangeCoverage[b]
                        and cactusCoverage[b] <= cactusCoverage[a])
 
         if not bDominatesA:
             continue
 
-        # Equivalent sprinklers: keep only the smaller index.
         equivalent = (orangeCoverage[a] == orangeCoverage[b]
                       and cactusCoverage[a] == cactusCoverage[b])
 
@@ -51,6 +48,50 @@ for i in range(s):
     if i not in eliminated:
         remainingSprinklers.append(i)
 
-print(f"Original sprinklers: {list(range(s))}")
-print(f"Remaining sprinklers: {remainingSprinklers}")
-print(f"Eliminated sprinklers: {sorted(eliminated)}")
+# Reduced search with pruning
+r = len(remainingSprinklers)
+allOranges = set(range(len(oranges)))
+
+bestCost = float("inf")
+bestMask = None
+
+for mask in range(1 << r):
+    active = []
+    coveredByMask = set()
+    for j in range(r):
+        if (mask >> j) & 1:
+            i = remainingSprinklers[j]
+            active.append(i)
+            coveredByMask |= orangeCoverage[i]
+
+    # Invalid selections skip cactus evaluation entirely
+    if coveredByMask != allOranges:
+        continue
+
+    cactiWatered = set()
+    pruned = False
+    for i in active:
+        cactiWatered |= cactusCoverage[i]
+        if len(cactiWatered) >= bestCost:
+            pruned = True
+            break
+
+    if pruned:
+        continue
+
+    cost = len(cactiWatered)
+    if cost < bestCost:
+        bestCost = cost
+        bestMask = mask
+
+if bestMask is None:
+    print("No valid selection found")
+else:
+    selected = []
+    for j in range(r):
+        if (bestMask >> j) & 1:
+            selected.append(sprinklers[remainingSprinklers[j]])
+
+    print(f"Best Reduced Mask: {bestMask:0{r}b}")
+    print(f"Selected Sprinklers: {selected}")
+    print(f"Minimum Cacti Watered: {bestCost}")
