@@ -135,6 +135,22 @@ def generate_case():
     radii = [random.randint(MIN_RADIUS, MAX_RADIUS) for _ in range(numSprinklers)]
     return oranges, cacti, sprinklers, radii
 
+def generate_hard_case(numSprinklers, numCacti):
+    # 1. Sprinklers at a fixed distance from each other.
+    sprinklers = [i * 6 for i in range(numSprinklers)]
+
+    # 2. Every sprinkler gets the same small radius.
+    radii = [2 for _ in range(numSprinklers)]
+
+    # 3. One orange at each sprinkler's position.
+    oranges = [position for position in sprinklers]
+
+    # 4. Cacti are random, within the span of the sprinklers.
+    maxPosition = (numSprinklers - 1) * 6
+    cacti = [random.randint(0, maxPosition) for _ in range(numCacti)]
+
+    # 5. Return the instance.
+    return oranges, cacti, sprinklers, radii
 
 def generate_feasible_case(numSprinklers, numOranges, numCacti):
     """Every orange is guaranteed to be covered by at least one sprinkler."""
@@ -238,7 +254,6 @@ def run_comparison_tests(numTests=100):
                   f"baseline={baseCost}, fast={fastCost}")
 
     print(f"Comparison tests: {passed} passed, {failed} failed")
-
 
 def main():
     random.seed(12345)
