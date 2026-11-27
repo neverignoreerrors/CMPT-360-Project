@@ -152,6 +152,100 @@ def generate_hard_case(numSprinklers, numCacti):
     # 5. Return the instance.
     return oranges, cacti, sprinklers, radii
 
+def find_mandatory_sprinklers(orangeCoverage, numOranges, remainingSprinklers=None):
+    if remainingSprinklers is None:
+        remainingSprinklers = list(range(len(orangeCoverage)))
+
+    mandatory = set()
+
+    for orange in range(numOranges):
+
+        coverers = []
+        for i in remainingSprinklers:
+            if orange in orangeCoverage[i]:
+                coverers.append(i)
+
+        if len(coverers) == 0:
+            return None
+
+        if len(coverers) == 1:
+            mandatory.add(coverers[0])
+
+
+    return mandatory
+
+def fast_mandatory(oranges, cacti, sprinklers, radii):
+    """Returns (minCost, selectedPositions, r, numMandatory),
+    or (None, None, r, 0) if some orange cannot be watered."""
+    s = len(sprinklers)
+
+    orangeCoverage, cactusCoverage = build_coverage(oranges, cacti, sprinklers, radii)
+    eliminated = set()
+    for a in range(s):
+        for b in range(s):
+            if a == b:
+                continue
+            if not (orangeCoverage[a] <= orangeCoverage[b]
+                    and cactusCoverage[b] <= cactusCoverage[a]):
+                continue
+            if (orangeCoverage[a] == orangeCoverage[b]
+                    and cactusCoverage[a] == cactusCoverage[b]):
+                if a > b:
+                    eliminated.add(a)
+            else:
+                eliminated.add(a)
+    remaining = [i for i in range(s) if i not in eliminated]
+    r = len(remaining)
+    allOranges = set(range(len(oranges)))
+
+    mandatory = find_mandatory_sprinklers(orangeCoverage, len(oranges), remaining)
+    if mandatory is None:
+        return None, None, r, 0
+
+    mandatoryOranges = set()
+    mandatoryCacti = set()
+    for i in mandatory:
+        mandatoryOranges |= orangeCoverage[i]
+        mandatoryCacti |= cactusCoverage[i]
+
+    if mandatoryOranges == allOranges:
+        selected = [sprinklers[i] for i in sorted(mandatory)]
+        return len(mandatoryCacti), selected, r, len(mandatory)
+
+    optional = [i for i in remaining if i not in mandatory]
+    k = len(optional)
+    bestCost = float("inf")
+    bestOptional = None
+
+    for mask in range(1 << k):
+        chosen = [optional[j] for j in range(k) if (mask >> j) & 1]
+
+        covered = set(mandatoryOranges)
+        for i in chosen:
+            covered |= orangeCoverage[i]
+        if covered != allOranges:
+            continue                      # invalid: skip cactus work
+
+        watered = set(mandatoryCacti)
+        pruned = len(watered) >= bestCost
+        if not pruned:
+            for i in chosen:
+                watered |= cactusCoverage[i]
+                if len(watered) >= bestCost:
+                    pruned = True
+                    break
+        if pruned:
+            continue
+
+        bestCost = len(watered)
+        bestOptional = chosen
+
+    if bestOptional is None:
+        return None, None, r, len(mandatory)
+
+    selected = [sprinklers[i] for i in sorted(mandatory | set(bestOptional))]
+    return bestCost, selected, r, len(mandatory)
+
 def generate_feasible_case(numSprinklers, numOranges, numCacti):
     """Every orange is guaranteed to be covered by at least one sprinkler."""
     sprinklers = [random.randint(MIN_POS, MAX_POS) for _ in range(numSprinklers)]
